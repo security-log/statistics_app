@@ -3,23 +3,21 @@ package main
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"os"
+	"sort"
 	"strconv"
 )
 
 func main() {
-	var (
-		nValues       = 0
-		initFlag      = 0
-		min, max, sum float64
-	)
-
 	// Check if have some args to work with
 	arguments := os.Args
 	if len(arguments) == 1 {
-		fmt.Println("Need one or more aguments")
+		fmt.Println("No arguments were provided to the program.")
 		return
 	}
+
+	values := []float64{}
 
 	for i := 1; i < len(arguments); i++ {
 		n, err := strconv.ParseFloat(arguments[i], 64)
@@ -28,45 +26,56 @@ func main() {
 			continue
 		}
 
-		nValues++
-		sum += n
-
-		if initFlag == 0 {
-			min = n
-			max = n
-			initFlag = 1
-			continue
-		}
-
-		if n < min {
-			min = n
-		}
-		if n > max {
-			max = n
-		}
-	}
-	fmt.Println("Number of values:", nValues)
-	fmt.Println("Min:", min)
-	fmt.Println("Max:", max)
-
-	if nValues == 0 {
-		return
+		values = append(values, n)
 	}
 
-	meanValue := sum / float64(nValues)
-	fmt.Printf("Mean value: %.5f\n", meanValue)
-
-	// Standar deviation
-	var square float64
-	for i := 1; i < len(arguments); i++ {
-		n, err := strconv.ParseFloat(arguments[i], 64)
-		if err != nil {
-			continue
+	if len(values) == 0 {
+		for i := 0; i < 10; i++ {
+			val := randomFloat(-10, 10)
+			values = append(values, val)
 		}
-
-		square += math.Pow((n - meanValue), 2)
 	}
 
-	stdDeviation := math.Sqrt(square / float64(nValues))
+	sort.Float64s(values)
+	fmt.Println("Number of values:", len(values))
+	fmt.Println("Min:", values[0])
+	fmt.Println("Max:", values[len(values)-1])
+
+	var sum float64 //0.0
+	for _, v := range values {
+		sum += v
+	}
+
+	meanVal := sum / float64(len(values))
+	fmt.Printf("Mean value: %.5f\n", meanVal)
+
+	var squared float64
+	for i := 0; i < len(values); i++ {
+		squared += math.Pow((values[i] - meanVal), 2)
+	}
+
+	stdDeviation := math.Sqrt(squared / float64(len(values)))
 	fmt.Printf("Standard deviation: %.5f\n", stdDeviation)
+
+	normalized := normalize(stdDeviation, meanVal, values)
+	fmt.Println("normalized:", normalized)
+}
+
+// https://en.wikipedia.org/wiki/Standard_score
+func normalize(stdDeviation float64, mean float64, data []float64) []float64 {
+	if stdDeviation == 0 {
+		return data
+	}
+
+	normalized := make([]float64, len(data))
+	for i, v := range data {
+		// The number of zeros determines the level of accuracy for the result
+		normalized[i] = math.Floor((v-mean)/stdDeviation*10_000) / 10_000
+	}
+
+	return normalized
+}
+
+func randomFloat(min, max float64) float64 {
+	return rand.Float64()*(max-min) + min
 }
