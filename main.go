@@ -15,25 +15,23 @@ func main() {
 	if len(arguments) == 1 {
 		fmt.Println("No arguments were provided to the program.")
 		return
+	} else if len(arguments) > 2 {
+		fmt.Println("Please only provide the quantity of floats to generate.")
+		return
 	}
 
 	values := []float64{}
 
-	for i := 1; i < len(arguments); i++ {
-		n, err := strconv.ParseFloat(arguments[i], 64)
-		if err != nil {
-			fmt.Println(arguments[i], "is not aa valid value")
-			continue
-		}
-
-		values = append(values, n)
+	//TODO: add some default value to the program, so this can run without arguments
+	quantityToGenerate, err := strconv.Atoi(arguments[1])
+	if err != nil {
+		fmt.Println(arguments[1], "is not a valid value")
+		return
 	}
 
-	if len(values) == 0 {
-		for i := 0; i < 10; i++ {
-			val := randomFloat(-10, 10)
-			values = append(values, val)
-		}
+	for i := 0; i < quantityToGenerate; i++ {
+		val := randomFloat(-10, 10)
+		values = append(values, val)
 	}
 
 	sort.Float64s(values)
